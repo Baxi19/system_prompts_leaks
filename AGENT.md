@@ -26,7 +26,8 @@ You must strictly follow this lifecycle for EVERY task:
 
 2. **DEVELOPMENT (DEV)**:
    - Implement the feature or bug fix adhering to `<flutter_expert_knowledge>`.
-   - Write clean, modular, and maintainable code.
+   - Write clean, modular, maintainable, and highly scalable code.
+   - Always create a strict file/folder separation: `repository`, `model`, `service`, `ui/widgets`, `ui/screens`, and a dedicated separate file for the provider. This decoupling ensures that if state management changes in the future, refactoring is minimized.
    - Use MCP servers or file system tools to read/write files.
 
 3. **TESTING**:
@@ -51,8 +52,9 @@ You must strictly follow this lifecycle for EVERY task:
 
 <flutter_expert_knowledge>
 ### State Management: Riverpod
-- **Mandatory Usage**: Use `flutter_riverpod` (or `hooks_riverpod`).
-- **Modern Syntax**: Always use the modern `Notifier` and `AsyncNotifier` classes, or Riverpod Code Generation (`@riverpod`) if the project is configured for it. Do not use legacy `StateNotifier` unless maintaining old code.
+- **Mandatory Usage**: Use ONLY `flutter_riverpod` for new features. If there is old code with other state management, we can fix it, but all new development must use `flutter_riverpod`.
+- **Modern Syntax**: Always create a class using the modern `Notifier` and `AsyncNotifier`. **DO NOT USE CODE GENERATION** (`@riverpod` or `build_runner` for Riverpod). Always write the classes and providers manually. Do not use legacy `StateNotifier` unless maintaining old code.
+- **Decoupled Architecture**: Always separate the provider definition into its own dedicated file.
 - **Provider Scoping**: Keep providers small, focused, and testable.
 - **UI Integration**: Use `ref.watch` inside the `build` method. Use `ref.read` exclusively inside callbacks (e.g., `onPressed`).
 - **No UI Logic**: Providers must handle state and business logic coordination. They must never format strings for the UI or depend on `BuildContext`.
@@ -63,21 +65,24 @@ You must strictly follow this lifecycle for EVERY task:
 - **Nested Navigation**: Use `ShellRoute` or `StatefulShellRoute` for complex layouts like Bottom Navigation Bars.
 - **Redirection**: Handle authentication and authorization robustly within the router's `redirect` logic.
 
-### UI / UX Performance
+### UI / UX & Responsiveness
+- **Theming**: You MUST use Flutter Themes (e.g., `Theme.of(context)`) to style the application. Do not hardcode colors, text styles, or dimensions. This allows the app to easily switch between themes (e.g., light/dark mode) without refactoring UI components.
+- **100% Responsive Design**: The app MUST be 100% responsive. Handle UI changes fluidly for mobile, tablets, web, and other form factors. Text scaling and widget layouts must adapt perfectly using tools like `LayoutBuilder`, `MediaQuery`, or responsive packages.
 - **Const Constructors**: Use `const` everywhere possible to prevent unnecessary widget rebuilds.
-- **Responsive Design**: Build adaptive layouts that work on mobile, tablet, and web/desktop (using `LayoutBuilder`, `MediaQuery`).
 - **Smooth 60/120fps**: Avoid heavy synchronous computations on the main thread. Use `Isolate.run` or `compute` for expensive parsing or data processing.
 - **Separation of Widgets**: Break down large build methods into smaller, reusable stateless widgets rather than helper methods returning Widgets.
 
-### Code Quality & Dart Best Practices
+### Code Quality & Error Handling
 - **Null Safety**: Leverage sound null safety completely. Avoid the `!` bang operator unless absolutely certain; prefer `if (val != null)` or `val ?? default`.
 - **Immutability**: Use `freezed` or `equatable` for models and states. All fields should be `final`.
 - **Typing**: Enforce strict static typing. Do not use `dynamic`.
-- **Error Handling**: Use functional error handling (e.g., returning `Either<Failure, Success>` using the `fpdart` or `dartz` packages) instead of relying solely on throwing exceptions.
+- **Comprehensive Error Handling**: You MUST always handle errors gracefully. Display user-friendly information in the UI/UX when an error occurs. Simultaneously, you must log technical error details and stack traces to Sentry (or the designated crashlytics tool). Never swallow errors silently.
 </flutter_expert_knowledge>
 
 <diagnostic_and_tooling>
 You are required to use the terminal/bash tools provided by the environment (MCP, Claude Code, Cursor, Kilo Code, Google Antigravity) to maintain codebase health.
+
+**Safety Constraint**: You may run diagnostic, build, and test commands autonomously. However, you MUST NOT push code, create commits, or perform dangerous, destructive operations without first requesting explicit approval from the user.
 
 - **Linting**: Before finalizing your work, you MUST run `flutter analyze`. If errors or warnings appear, you MUST fix them. You are not allowed to submit code with analysis errors.
 - **Formatting**: Run `dart format .` on the files you touched.
